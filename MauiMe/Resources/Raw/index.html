@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Model Viewer (S3 Hard-coded)</title>
+
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+      #container {
+        width: 90%;
+        height: 80vh;
+        position: relative;
+        border-radius: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      #debug {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: black;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+      }
+    </style>
+    <!-- THREE_JS_PLACEHOLDER -->
+    <!-- GLTF_LOADER_PLACEHOLDER -->
+  </head>
+  <body>
+    <script>
+      let scene, camera, renderer, model;
+      function updateDebug(message) {
+        const debugElement = document.getElementById("debug");
+        debugElement.innerHTML += "<br>" + message;
+        debugElement.scrollTop = debugElement.scrollHeight;
+        console.log(message);
+      }
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x12ffff);
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0x12ffff, 0.1);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+          "random.glb",
+          function (gltf) {
+            model = gltf.scene;
+            console.log("Model:", model);
+            scene.add(model);
+
+            // Center the model
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+
+            // Adjust camera to fit model
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            cameraZ *= 1.5; // Zoom out a little so object fits in view
+            camera.position.z = cameraZ;
+
+            const minZ = box.min.z;
+            const cameraToFarEdge = minZ < 0 ? -minZ + cameraZ : cameraZ - minZ;
+            camera.far = cameraToFarEdge * 3;
+            camera.updateProjectionMatrix();
+          },
+          function (xhr) {
+            // updateDebug("XHR");
+            // updateDebug(JSON.stringify(xhr));
+            // updateDebug("XHR-end");
+          },
+          function (error) {
+            console.error("GLTFLoader error:", error);
+            // updateDebug("GLTFLoader error:");
+            // updateDebug(JSON.stringify(error));
+            // updateDebug("GLTFLoader error");
+          }
+        );
+
+        animate();
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      function updateRotation(pitch, yaw, roll) {
+        if (model) {
+          model.rotation.x = pitch;
+          model.rotation.y = yaw;
+          model.rotation.z = roll;
+        }
+      }
+
+      function updateDebug(message) {
+        document.getElementById("debug").innerHTML += "<br>" + message;
+        console.log(message);
+      }
+
+      window.onerror = function (message, source, lineno, colno, error) {
+        updateDebug("JavaScript error: " + message);
+        return false;
+      };
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
