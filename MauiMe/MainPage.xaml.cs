@@ -48,6 +48,9 @@ namespace MauiMe
                     handler.PlatformView.Settings.AllowFileAccessFromFileURLs = true;
                     handler.PlatformView.Settings.AllowUniversalAccessFromFileURLs = true;
 #elif IOS
+            var config = new WebKit.WKWebViewConfiguration();
+            config.Preferences.SetValueForKey(Foundation.NSObject.FromObject(true), new Foundation.NSString("allowFileAccessFromFileURLs"));
+            handler.PlatformView = new WebKit.WKWebView(handler.PlatformView.Frame, config);
 #endif
                 });
                 LoadWebViewContent();
