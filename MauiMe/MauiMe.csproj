@@ -59,7 +59,14 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\Raw\index.html" />
-		<EmbeddedResource Include="Resources\Raw\random.glb" />
+		<EmbeddedResource Include="Resources\Raw\updated.html" />
+		<EmbeddedResource Include="Resources\Raw\jackettop.glb" />
+		<EmbeddedResource Include="Resources\Raw\jacketbottom.glb" />
+		<EmbeddedResource Include="Resources\Raw\top.glb" />
+		<EmbeddedResource Include="Resources\Raw\bottom.glb" />
+		<EmbeddedResource Include="Resources\Raw\mouthpiece.glb" />
+		<EmbeddedResource Include="Resources\Raw\button.glb" />
+		<EmbeddedResource Include="Resources\Raw\usb.glb" />
 		<EmbeddedResource Include="Resources\Raw\GLTFLoader.js" />
 		<EmbeddedResource Include="Resources\Raw\three.min.js" />
 	</ItemGroup>

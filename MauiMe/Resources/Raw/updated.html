@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Model Viewer for MAUI</title>
+    <!-- THREE_JS_PLACEHOLDER -->
+    <!-- GLTF_LOADER_PLACEHOLDER -->
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let scene, camera, renderer, modelGroup;
+      let models = [];
+
+      const modelUrls = [
+        { name: "Jacket Top", file: "jackettop.glb", color: 0xffd700 },
+        { name: "Jacket Bottom", file: "jacketbottom.glb", color: 0xffd700 },
+        { name: "Button", file: "button.glb", color: 0x5c5cff },
+        { name: "Bottom", file: "bottom.glb", color: 0xffd700 },
+        { name: "USB", file: "usb.glb", color: 0xb5c0c9 },
+        { name: "Mouthpiece", file: "mouthpiece.glb", color: 0xb5c0c9 },
+        { name: "Top", file: "top.glb", color: 0xb5c0c9 },
+      ];
+
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffc5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 1).normalize();
+        scene.add(directionalLight);
+        const directionalLightDown = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLightDown.position.set(-1, 1, 1).normalize();
+        scene.add(directionalLightDown);
+        const directionalLightUp = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLightUp.position.set(1, -1, 1).normalize();
+        scene.add(directionalLightUp);
+        const directionalLightFinal = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLightFinal.position.set(1, 1, -1).normalize();
+        scene.add(directionalLightFinal);
+        modelGroup = new THREE.Group();
+        scene.add(modelGroup);
+
+        loadAllModels().then(() => {
+          centerCamera();
+          animate();
+        });
+
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function loadAllModels() {
+        const loader = new THREE.GLTFLoader();
+        const promises = modelUrls.map(
+          (modelInfo, index) =>
+            new Promise((resolve, reject) => {
+              loader.load(
+                modelInfo.file,
+                function (gltf) {
+                  const model = gltf.scene;
+                  model.userData = { modelIndex: index };
+                  models.push(model);
+                  modelGroup.add(model);
+
+                  // Set initial color
+                  updateModelColor(index, modelInfo.color);
+
+                  resolve(`Model ${modelInfo.name} loaded successfully`);
+                },
+                undefined,
+                function (error) {
+                  reject(`Error loading model ${modelInfo.name}: ${error}`);
+                }
+              );
+            })
+        );
+
+        return Promise.all(promises);
+      }
+
+      function centerCamera() {
+        const box = new THREE.Box3().setFromObject(modelGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        modelGroup.position.sub(center);
+
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 3;
+        camera.position.z = cameraZ;
+
+        camera.updateProjectionMatrix();
+      }
+
+      function updateModelColor(modelIndex, color) {
+        if (modelIndex >= 0 && modelIndex < models.length) {
+          models[modelIndex].traverse((node) => {
+            if (node.isMesh) {
+              node.material.color.setHex(color);
+            }
+          });
+          return `Color updated for ${modelUrls[modelIndex].name}`;
+        } else {
+          return `Invalid model index: ${modelIndex}`;
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function updateRotation(pitch, yaw, roll) {
+        if (modelGroup) {
+          modelGroup.rotation.x = pitch;
+          modelGroup.rotation.y = yaw;
+          modelGroup.rotation.z = roll;
+        }
+        return "Rotation updated";
+      }
+
+      init();
+    </script>
+  </body>
+</html>
