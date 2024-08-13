@@ -48,9 +48,15 @@ namespace MauiMe
                     handler.PlatformView.Settings.AllowFileAccessFromFileURLs = true;
                     handler.PlatformView.Settings.AllowUniversalAccessFromFileURLs = true;
 #elif IOS
-            var config = new WebKit.WKWebViewConfiguration();
-            config.Preferences.SetValueForKey(Foundation.NSObject.FromObject(true), new Foundation.NSString("allowFileAccessFromFileURLs"));
-            handler.PlatformView = new WebKit.WKWebView(handler.PlatformView.Frame, config);
+                    MainThread.BeginInvokeOnMainThread(() =>
+                                {
+                                    var wkWebView = (WebKit.WKWebView)webView.Handler.PlatformView;
+                                    wkWebView.Configuration.Preferences.SetValueForKey(
+                                        Foundation.NSObject.FromObject(true),
+                                        new Foundation.NSString("allowFileAccessFromFileURLs"));
+                                    wkWebView.Configuration.AllowsInlineMediaPlayback = true;
+                                    wkWebView.Configuration.MediaTypesRequiringUserActionForPlayback = WebKit.WKAudiovisualMediaTypes.None;
+                                });
 #endif
                 });
                 LoadWebViewContent();
@@ -115,14 +121,7 @@ namespace MauiMe
                 var assembly = typeof(MainPage).GetTypeInfo().Assembly;
 
                 // Load HTML content
-                Stream htmlStream = assembly.GetManifestResourceStream("MauiMe.Resources.Raw.updated.html");
-                if (htmlStream == null) throw new InvalidOperationException("Could not find index.html resource");
-
-                string htmlContent;
-                using (var reader = new StreamReader(htmlStream))
-                {
-                    htmlContent = await reader.ReadToEndAsync();
-                }
+                string htmlContent = await LoadResourceContent(assembly, "MauiMe.Resources.Raw.updated.html");
 
                 // Load Three.js and GLTFLoader.js content
                 string jsContent = await LoadResourceContent(assembly, "MauiMe.Resources.Raw.three.min.js");
@@ -140,11 +139,10 @@ namespace MauiMe
                     htmlContent = htmlContent.Replace($"\"{file}\"", $"\"{localFilePath}\"");
                 }
 
-
                 // Set the HTML content to the WebView
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    webView.Source = new HtmlWebViewSource { Html = htmlContent };
+                    webView.Source = new HtmlWebViewSource { Html = htmlContent, BaseUrl = FileSystem.CacheDirectory };
                 });
             }
             catch (Exception ex)
@@ -179,7 +177,7 @@ namespace MauiMe
                 {
                     await modelStream.CopyToAsync(fileStream);
                 }
-                modelPaths[modelFile] = $"file://{localFilePath}";
+                modelPaths[modelFile] = localFilePath;
             }
             return modelPaths[modelFile];
         }
@@ -189,12 +187,15 @@ namespace MauiMe
             try
             {
                 string script = $"updateRotation({pitch}, {yaw}, {roll});";
-                string result = await webView.EvaluateJavaScriptAsync(script);
-                Debug.WriteLine($"UpdateRotation result: {result}");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    string result = await webView.EvaluateJavaScriptAsync(script);
+                    Debug.WriteLine($"UpdateRotation result: {result}");
+                });
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in UpdateRotation: {ex.Message}");
+                LogError("Error in UpdateRotation", ex);
             }
         }
 
@@ -203,8 +204,11 @@ namespace MauiMe
             try
             {
                 string script = $"updateModelColor({modelIndex}, 0x{colorHex.Substring(1)});";
-                string result = await webView.EvaluateJavaScriptAsync(script);
-                Debug.WriteLine($"UpdateModelColor result: {result}");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                  {
+                      string result = await webView.EvaluateJavaScriptAsync(script);
+                      Debug.WriteLine($"UpdateModelColor result: {result}");
+                  });
             }
             catch (Exception ex)
             {

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
 			$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
@@ -12,13 +12,11 @@
 		<!-- Display name -->
 		<ApplicationTitle>MauiMe</ApplicationTitle>
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mauime</ApplicationId>
+		<ApplicationId>com.quadrant2.mauime</ApplicationId>
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
-		<SupportedOSPlatformVersion
-			Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
-			11.0</SupportedOSPlatformVersion>
+
 		<SupportedOSPlatformVersion
 			Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
 			13.1</SupportedOSPlatformVersion>
@@ -31,7 +29,17 @@
 		<TargetPlatformMinVersion
 			Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
 			10.0.17763.0</TargetPlatformMinVersion>
+
 	</PropertyGroup>
+
+	<PropertyGroup
+		Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+		<CreatePackage>false</CreatePackage>
+		<CodesignKey>Apple Development: Sagar Shrestha (69G6VPARU6)</CodesignKey>
+		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
+		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+	</PropertyGroup>
+
 
 	<PropertyGroup
 		Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-maccatalyst|AnyCPU'">
