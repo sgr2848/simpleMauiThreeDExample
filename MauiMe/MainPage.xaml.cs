@@ -21,6 +21,7 @@ public partial class MainPage : ContentPage
         ("Mouthpiece", "mouthpiece.glb", "#B5C0C9"),
         ("Top", "top.glb", "#B5C0C9")
     };
+    private Label warningLabel;
     private Dictionary<string, string> modelPaths = new Dictionary<string, string>();
 
     private List<string> colorOptions = new List<string>
@@ -68,6 +69,12 @@ public partial class MainPage : ContentPage
         yawSlider.ValueChanged += (s, e) => UpdateRotation(pitchSlider.Value, e.NewValue, rollSlider.Value);
         rollSlider.ValueChanged += (s, e) => UpdateRotation(pitchSlider.Value, yawSlider.Value, e.NewValue);
 
+        warningLabel = new Label
+        {
+            Text = string.Empty,
+            TextColor = Colors.Red,
+            IsVisible = false
+        };
         var layout = new StackLayout
         {
             Children =
@@ -290,6 +297,7 @@ public partial class MainPage : ContentPage
             {
                 string result = await webView.EvaluateJavaScriptAsync(script);
                 Debug.WriteLine($"UpdateRotation result: {result}");
+                CheckModelOrientation(pitch, yaw, roll);
             });
         }
         catch (Exception ex)
@@ -297,7 +305,23 @@ public partial class MainPage : ContentPage
             LogError("Error in UpdateRotation", ex);
         }
     }
+    private void CheckModelOrientation(double pitch, double yaw, double roll)
+    {
+        const double threshold = 1.57; // Approximately 90 degrees in radians
 
+        bool isSideways = Math.Abs(pitch) > threshold || Math.Abs(roll) > threshold;
+        bool isUpsideDown = yaw > threshold || yaw < -threshold;
+
+        if (isSideways || isUpsideDown)
+        {
+            warningLabel.Text = "Warning: The model is sideways or upside down!";
+            warningLabel.IsVisible = true;
+        }
+        else
+        {
+            warningLabel.IsVisible = false;
+        }
+    }
     private async void UpdateModelColor(int modelIndex, string colorHex)
     {
         try
