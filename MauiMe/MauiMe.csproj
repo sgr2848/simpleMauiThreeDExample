@@ -63,6 +63,9 @@
 		<EmbeddedResource Include="Resources\Raw\mouthpiece.glb" />
 		<EmbeddedResource Include="Resources\Raw\button.glb" />
 		<EmbeddedResource Include="Resources\Raw\usb.glb" />
+		<EmbeddedResource Include="Resources\Raw\textLeft.glb" />
+		<EmbeddedResource Include="Resources\Raw\stop.glb" />
+		<EmbeddedResource Include="Resources\Raw\textRight.glb" />
 		<EmbeddedResource Include="Resources\Raw\GLTFLoader.js" />
 		<EmbeddedResource Include="Resources\Raw\three.min.js" />
 	</ItemGroup>
@@ -70,8 +73,8 @@
 	<ItemGroup>
 		<PackageReference Include="Evergine.Bindings.Draco" Version="2024.7.19.9" />
 		<PackageReference Include="Evergine.Common" Version="2024.6.28.781" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.82" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.82" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 	</ItemGroup>
 

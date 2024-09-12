@@ -19,7 +19,10 @@ public partial class MainPage : ContentPage
         ("Bottom", "bottom.glb", "#FFD700"),
         ("USB", "usb.glb", "#B5C0C9"),
         ("Mouthpiece", "mouthpiece.glb", "#B5C0C9"),
-        ("Top", "top.glb", "#B5C0C9")
+        ("Top", "top.glb", "#B5C0C9"),
+        ("Text Left","textLeft.glb","#B5C0C9"),
+        ("Text Right","textRight.glb","#B5C0C9"),
+        ("Stop","stop.glb","#FF0000")
     };
     private Label warningLabel;
     private Dictionary<string, string> modelPaths = new Dictionary<string, string>();
